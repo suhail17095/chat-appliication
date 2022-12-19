@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      background-color: rgb(131, 214, 201);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .example::-webkit-scrollbar {
+      display: none;
+    }
+
+    .message {
+      width: 10rem;
+      margin: 5px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .messages {
+      background-color: rgba(237, 237, 230, 0.734);
+      width: 41rem;
+      padding: 10px;
+      height: 25rem;
+      overflow-y: auto;
+      border-radius: 10px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .left {
+      float: left;
+      clear: both;
+      background-color: rgb(73, 201, 201);
+    }
+
+    .right {
+      float: right;
+      clear: both;
+      background-color: rgb(192, 206, 206);
+    }
+
+    form {
+      /* margin-top: 5px; */
+      height: 3rem;
+      background-color: rgba(237, 237, 230, 0.734);
+      
+    }
+
+    button {
+      height: 40px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    input {
+      width: 600px;
+      height: 2rem;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>This is a chat application</h1>
+    <div class="messages">
+      <div class="left message">hellow</div>
+      <div class="right message">kya kar </div>
+    </div>
+    <form action="">
+      <input type="text" placeholder="write message here...">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"> </script>
+  <script>
+    const socket = io();
+    let name = prompt("please enter your name");
+    // new user has joined
+    socket.emit("new-user-joined", name);
+
+    socket.on("user-joined", (name) => {
+      let msg = name + " has joined the chat";
+      appendMessage(msg, "left-a");
+    })
+    const button = document.getElementsByTagName("button")[0];
+    const input = document.getElementsByTagName("input")[0];
+    const messages = document.getElementsByClassName("messages")[0];
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      let msg = { "msg": input.value, "name": name };
+      sendMessage(msg, "right");
+      input.value = "";
+    })
+
+    function appendMessage(msg, type) {
+
+      let element = document.createElement("div");
+      if (type == "left-a") {
+        element.innerHTML = msg;
+        type = "left";
+      }
+      else {
+        element.innerHTML = msg.name + ":" + msg.msg;
+      }
+      element.classList.add(type);
+      element.classList.add("message");
+
+      messages.append(element);
+    }
+    function sendMessage(msg, type) {
+      appendMessage(msg, type);
+      scrollToBottom();
+      socket.emit("message", msg);
+    }
+
+    // recieve
+    socket.on("receive", (msg) => {
+      appendMessage(msg, "left");
+      scrollToBottom();
+    })
+
+    function scrollToBottom() {
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+  </script>
+</body>
+
+</html>
